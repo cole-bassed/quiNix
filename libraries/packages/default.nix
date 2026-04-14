@@ -1,8 +1,24 @@
 /**
 libraries/packages/default.nix
 
-Namespace owner for lib.packages.
-
-Leaf files in this directory contribute raw members of lib.packages.
+Mounts lib.packages extensions from leaf files.
 */
-{lib}: lib.filesystem.importLibs ./.
+{lib}: let
+  inherit (lib) fix foldl';
+
+  entries = [
+    ./resolve.nix
+    ./rust.nix
+    ./openclaw.nix
+    ./llm.nix
+  ];
+
+  packages = fix (self:
+    foldl'
+    (acc: entry:
+      acc // ((import entry) (lib // {packages = self;}) acc))
+    {}
+    entries);
+in {
+  inherit packages;
+}

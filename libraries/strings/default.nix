@@ -1,8 +1,14 @@
 /**
 libraries/strings/default.nix
 
-Namespace owner for lib.strings.
-
-Leaf files in this directory contribute raw members of lib.strings.
+Mounts lib.strings extensions from leaf files.
 */
-{lib}: lib.filesystem.importLibs ./.
+{lib}: {
+  strings = lib.assemble {
+    start = lib.strings;
+    scope = acc: lib // {strings = acc;};
+    entries = [
+      ./core.nix
+    ];
+  };
+}

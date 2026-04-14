@@ -1,11 +1,33 @@
 /**
 libraries/shells/config.nix
 
-Shell spec constructors.
-
-Exports raw members for lib.shells.
+Shell spec constructors for lib.shells.
 */
 final: prev: {
+  /**
+  Build the Rust-focused shell specification.
+
+  # Type
+  ```nix
+  mkRustSpec :: AttrSet -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  mkRustSpec {
+    inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome;
+    channel = "stable";
+  }
+  # => {
+  #   __meta.kind = "rust";
+  #   shell.name = "rust-stable";
+  #   ...
+  # }
+  ```
+
+  # Returns
+  A shell spec containing Rust packages, environment variables, and shell initialization.
+  */
   mkRustSpec = {
     lib,
     pkgs,
@@ -45,6 +67,30 @@ final: prev: {
     };
   };
 
+  /**
+  Build the AI-tooling shell specification.
+
+  # Type
+  ```nix
+  mkAiSpec :: {
+    lib :: AttrSet;
+    pkgs :: AttrSet;
+  } -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  mkAiSpec { inherit lib pkgs; }
+  # => {
+  #   __meta.kind = "ai";
+  #   shell.name = "ai-dev";
+  #   ...
+  # }
+  ```
+
+  # Returns
+  A shell spec for the AI toolchain and its expected environment variables.
+  */
   mkAiSpec = {
     lib,
     pkgs,
@@ -71,6 +117,30 @@ final: prev: {
     };
   };
 
+  /**
+  Merge the Rust and AI shell specifications into a combined shell.
+
+  # Type
+  ```nix
+  mkCombinedSpec :: AttrSet -> AttrSet
+  ```
+
+  # Examples
+  ```nix
+  mkCombinedSpec {
+    inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome;
+    channel = "nightly";
+  }
+  # => {
+  #   __meta.kind = "combined";
+  #   shell.name = "full-nightly";
+  #   ...
+  # }
+  ```
+
+  # Returns
+  A merged shell spec combining the Rust and AI environments.
+  */
   mkCombinedSpec = {
     lib,
     pkgs,

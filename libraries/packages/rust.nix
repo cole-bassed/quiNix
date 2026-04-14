@@ -1,33 +1,49 @@
 /**
-libraries/packages/resolve.nix
+libraries/packages/rust.nix
 
-Exports pure package/binary resolution helpers.
+Rust toolchain selectors for lib.packages.
 */
 final: prev: {
-  mkPkgs = {inputs}: {system}:
-    import inputs.NixPackages {
-      inherit system;
-      overlays = with inputs; [
-        (import Rust)
-        OpenClaw.overlays.default
-        AIAgents.overlays.default
-      ];
-      config.allowUnfree = true;
+  /**
+  Select a rust-overlay toolchain derivation.
+
+  Defaults intentionally include the components expected by the Rust shell and
+  editor tooling.
+
+  # Type
+  ```nix
+  mkRust :: {
+    pkgs :: AttrSet;
+    channel ? string;
+    targets ? [string];
+    extensions ? [string];
+  } -> derivation
+  ```
+
+  # Examples
+  ```nix
+  mkRust {
+    inherit pkgs;
+    channel = "stable";
+  }
+  # => pkgs.rust-bin.stable.latest.default.override { ... }
+  ```
+
+  # Returns
+  A rust-overlay toolchain derivation with the requested channel, targets, and extensions.
+  */
+  mkRust = {
+    pkgs,
+    channel ? "nightly",
+    targets ? [],
+    extensions ? [
+      "clippy"
+      "rust-analyzer"
+      "rust-src"
+      "rustfmt"
+    ],
+  }:
+    pkgs.rust-bin.${channel}.latest.default.override {
+      inherit targets extensions;
     };
-
-  extractMainProgram = pkg:
-    if pkg ? meta.mainProgram
-    then pkg.meta.mainProgram
-    else pkg.pname or pkg.name or "";
-
-  resolveBin = drv: "${drv}/bin/${final.packages.extractMainProgram drv}";
-
-  mkBins = packages:
-    final.mapAttrs (_: final.packages.resolveBin)
-    (final.removeAttrs packages (
-      final.attrNames (final.filterAttrs (_: v: v == null) packages)
-    ));
-
-  mkCmds = bins: f:
-    builtins.mapAttrs (_: bin: f bin) bins;
 }

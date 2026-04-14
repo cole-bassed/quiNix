@@ -23,6 +23,8 @@
   - `start`: the initial accumulator
   - `entries`: files or directories to import in order
   - `scope`: maps the current accumulator to the `lib` value passed to the next import
+  - `priority`: entry basenames that should be imported first when `entries` is a directory
+  - `ignore`: entry basenames that should be skipped
 
   # Examples
   ```nix
@@ -38,6 +40,9 @@
     scope = acc: lib // { filesystem = acc; };
   }
   ```
+
+  # Returns
+  The final merged attrset after importing each entry in sequence.
   */
   assemble = {
     start,

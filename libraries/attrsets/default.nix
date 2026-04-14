@@ -3,4 +3,12 @@ libraries/attrsets/default.nix
 
 Mounts lib.attrsets extensions from leaf files.
 */
-{lib}: lib.filesystem.importLibs ./.
+{lib}: {
+  attrsets = lib.assemble {
+    start = lib.attrsets;
+    scope = acc: lib // {attrsets = acc;};
+    entries = [
+      ./core.nix
+    ];
+  };
+}

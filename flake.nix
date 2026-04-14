@@ -1,12 +1,6 @@
 {
   description = "AI + Rust Development Environment";
 
-  outputs = inputs @ {self, ...}:
-    (import ./modules {
-      inherit inputs;
-      lib = import ../libraries {inherit (inputs.NixPackages) lib;};
-    }).mkOutputs;
-
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";
     Rust = {
@@ -20,4 +14,12 @@
     #? nixpkgs.follows intentionally omitted — see modules/packages/llm.nix
     AIAgents.url = "github:numtide/llm-agents.nix";
   };
+
+  outputs = inputs @ {self, ...}: let
+    _ = import ./. {inherit (inputs.NixPackages) lib self;};
+  in
+    (import _.paths.modules {
+      inherit inputs;
+      inherit (_) lib;
+    }).mkOutputs;
 }

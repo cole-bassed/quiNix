@@ -6,6 +6,7 @@
   namespaces = {
     attrsets = import ./attrsets.nix {inherit lib assertMsg;};
     filesystem = import ./filesystem.nix {inherit lib assertMsg;};
+    strings = import ./strings.nix {inherit lib assertMsg;};
   };
   names = attrNames namespaces;
 in {

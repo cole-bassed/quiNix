@@ -1,8 +1,23 @@
 /**
 libraries/shells/default.nix
 
-Namespace owner for lib.shells.
-
-Leaf files in this directory contribute raw members of lib.shells.
+Mounts lib.shells extensions from leaf files.
 */
-{lib}: lib.filesystem.importLibs ./.
+{lib}: let
+  inherit (lib) fix foldl';
+
+  entries = [
+    ./meta.nix
+    ./build.nix
+    ./config.nix
+  ];
+
+  shells = fix (self:
+    foldl'
+    (acc: entry:
+      acc // ((import entry) (lib // {shells = self;}) acc))
+    {}
+    entries);
+in {
+  inherit shells;
+}

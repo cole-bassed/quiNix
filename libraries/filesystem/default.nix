@@ -1,3 +1,8 @@
+/**
+libraries/filesystem/default.nix
+
+Mounts lib.filesystem extensions from leaf files.
+*/
 {lib}: {
   filesystem = lib.assemble {
     start = lib.filesystem;
