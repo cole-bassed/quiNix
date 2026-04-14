@@ -1,64 +1,16 @@
-/**
-libraries/filesystem/paths.nix
-
-Path and discovery helpers for lib.filesystem.
-
-Exports:
-- foldersToExclude
-- inferNamespace
-- normalizeInput
-- isNixFile
-- isIncludedDir
-- collectFromDir
-- collectPaths
-*/
 {lib}: let
-  inherit
-    (lib.filesystem)
-    isPath
-    pathIsRegularFile
-    pathType
-    readDir
-    ;
+  inherit (lib.filesystem) isPath pathIsRegularFile pathType readDir;
   inherit (lib.attrsets) attrNames;
   inherit (lib.lists) concatMap elem filter flatten isList map;
-  inherit (lib.strings) hasSuffix removeSuffix;
+  inherit (lib.strings) hasSuffix;
 
-  foldersToExclude = [
-    "archives"
-    "review"
-    "temp"
-    "tmp"
-  ];
-
-  inferNamespace = path:
-    removeSuffix ".nix" (baseNameOf (toString path));
-
-  normalizeInput = defaults: input: let
-    base =
-      {
-        recurse = false;
-        namespace = null;
-        args = {};
-      }
-      // defaults;
-  in
-    if isPath input
-    then base // {path = input;}
-    else if isList input
-    then base // {path = input;}
-    else base // input;
+  foldersToExclude = ["archives" "review" "temp" "tmp"];
 
   isNixFile = name: entry:
-    entry
-    == "regular"
-    && hasSuffix ".nix" name
-    && name != "default.nix";
+    entry == "regular" && hasSuffix ".nix" name && name != "default.nix";
 
   isIncludedDir = name: entry:
-    entry
-    == "directory"
-    && !(elem name foldersToExclude);
+    entry == "directory" && !(elem name foldersToExclude);
 
   collectFromDir = {
     path,
@@ -118,8 +70,6 @@ Exports:
 in {
   inherit
     foldersToExclude
-    inferNamespace
-    normalizeInput
     isNixFile
     isIncludedDir
     collectFromDir

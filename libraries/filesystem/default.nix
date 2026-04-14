@@ -1,5 +1,5 @@
 {lib}: {
-  filesystem = lib.project.foldScoped {
+  filesystem = lib.assemble {
     start = lib.filesystem;
     scope = acc: lib // {filesystem = acc;};
     entries = [
