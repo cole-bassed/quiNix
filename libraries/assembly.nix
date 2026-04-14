@@ -21,19 +21,14 @@ Intended as a zero-dependency bootstrap that other library namespaces
 - `importLibs`        – assemble a staged library namespace
 */
 {lib}: let
-
   # ---------------------------------------------------------------------------
   # stdlib — only stock nixpkgs lib, nothing custom
   # ---------------------------------------------------------------------------
-  inherit (builtins) typeOf baseNameOf;
   inherit (lib.attrsets) attrNames attrValues filterAttrs mergeAttrsList;
-  inherit (lib.filesystem) pathIsRegularFile pathType readDir;
+  inherit (lib.filesystem) isPath pathIsRegularFile pathType readDir;
   inherit (lib.lists) concatMap elem filter flatten foldl' isList map;
   inherit (lib.strings) hasSuffix removeSuffix;
   inherit (lib.trivial) functionArgs isFunction;
-
-  # builtins.isPath is available since Nix 2.0; keep a local alias for clarity.
-  isPath = x: typeOf x == "path";
 
   # ---------------------------------------------------------------------------
   # assemble
@@ -76,9 +71,9 @@ Intended as a zero-dependency bootstrap that other library namespaces
   assemble = {
     start,
     entries,
-    scope      ? (acc: acc),
-    priority   ? [],
-    ignore     ? [],
+    scope ? (acc: acc),
+    priority ? [],
+    ignore ? [],
     dependencies ? [],
   }: let
     orderedEntries =
@@ -86,41 +81,41 @@ Intended as a zero-dependency bootstrap that other library namespaces
       then
         # Explicit list — only strip ignored entries, keep caller's order.
         filter
-          (entry: !(elem (baseNameOf (toString entry)) ignore))
-          entries
+        (entry: !(elem (baseNameOf (toString entry)) ignore))
+        entries
       else let
         # Directory — sort by priority then alphabetically.
-        dir   = readDir entries;
+        dir = readDir entries;
         names =
           filter
-            (name:
-              !(elem name ignore)
-              && name != "default.nix"
-              && (   dir.${name} == "directory"
-                  || (dir.${name} == "regular" && hasSuffix ".nix" name)))
-            (attrNames dir);
+          (name:
+            !(elem name ignore)
+            && name != "default.nix"
+            && (dir.${name}
+              == "directory"
+              || (dir.${name} == "regular" && hasSuffix ".nix" name)))
+          (attrNames dir);
 
-        prioritized = filter (name:  elem name names)  priority;
-        remaining   = filter (name: !elem name prioritized) names;
+        prioritized = filter (name: elem name names) priority;
+        remaining = filter (name: !elem name prioritized) names;
       in
         map (name: entries + "/${name}") (prioritized ++ remaining);
-
   in
     foldl'
-      (acc: entry: let
-        baseLib = scope acc;
+    (acc: entry: let
+      baseLib = scope acc;
 
-        # Inject dependency extensions so each entry sees them in its `lib`.
-        libForEntry =
-          foldl'
-            (depLib: depPath:
-              depLib // (import depPath {lib = depLib;}))
-            baseLib
-            dependencies;
-      in
-        acc // (import entry {lib = libForEntry;}))
-      start
-      orderedEntries;
+      # Inject dependency extensions so each entry sees them in its `lib`.
+      libForEntry =
+        foldl'
+        (depLib: depPath:
+          depLib // (import depPath {lib = depLib;}))
+        baseLib
+        dependencies;
+    in
+      acc // (import entry {lib = libForEntry;}))
+    start
+    orderedEntries;
 
   # ---------------------------------------------------------------------------
   # Path discovery
@@ -162,34 +157,38 @@ Intended as a zero-dependency bootstrap that other library namespaces
   collectFromDir = {
     path,
     recurse ? false,
-    ignore  ? [],
+    ignore ? [],
   }: let
     entries = readDir path;
 
     filePaths =
       map
-        (name: path + "/${name}")
-        (filter
-          (name: !(elem name ignore) && isNixFile name entries.${name})
-          (attrNames entries));
+      (name: path + "/${name}")
+      (filter
+        (name: !(elem name ignore) && isNixFile name entries.${name})
+        (attrNames entries));
 
     dirPaths =
       concatMap
-        (name: let
-          subPath    = path + "/${name}";
-          subEntries = readDir subPath;
-          hasDefault =
-            subEntries ? "default.nix"
-            && subEntries."default.nix" == "regular";
-        in
-          if hasDefault
-          then [subPath]
-          else if recurse
-          then collectFromDir {path = subPath; inherit recurse ignore;}
-          else [])
-        (filter
-          (name: !(elem name ignore) && isIncludedDir name entries.${name})
-          (attrNames entries));
+      (name: let
+        subPath = path + "/${name}";
+        subEntries = readDir subPath;
+        hasDefault =
+          subEntries ? "default.nix"
+          && subEntries."default.nix" == "regular";
+      in
+        if hasDefault
+        then [subPath]
+        else if recurse
+        then
+          collectFromDir {
+            path = subPath;
+            inherit recurse ignore;
+          }
+        else [])
+      (filter
+        (name: !(elem name ignore) && isIncludedDir name entries.${name})
+        (attrNames entries));
   in
     filePaths ++ dirPaths;
 
@@ -211,19 +210,28 @@ Intended as a zero-dependency bootstrap that other library namespaces
   collectPaths = {
     path,
     recurse ? false,
-    ignore  ? [],
+    ignore ? [],
   }:
     flatten (
       map
-        (p:
-          if pathType p == "directory"
-          then collectFromDir {path = p; inherit recurse ignore;}
-          else if    pathIsRegularFile p
-                  && !(elem (baseNameOf p) ignore)
-                  && hasSuffix ".nix" (baseNameOf p)
-          then [p]
-          else [])
-        (if isList path then path else [path])
+      (p:
+        if pathType p == "directory"
+        then
+          collectFromDir {
+            path = p;
+            inherit recurse ignore;
+          }
+        else if
+          pathIsRegularFile p
+          && !(elem (baseNameOf p) ignore)
+          && hasSuffix ".nix" (baseNameOf p)
+        then [p]
+        else [])
+      (
+        if isList path
+        then path
+        else [path]
+      )
     );
 
   # ---------------------------------------------------------------------------
@@ -239,17 +247,21 @@ Intended as a zero-dependency bootstrap that other library namespaces
   ```
   */
   normalizeInput = defaults: input: let
-    base = {
-      recurse   = false;
-      namespace = null;
-      args      = {};
-      priority  = [];
-      ignore    = [];
-    } // defaults;
+    base =
+      {
+        recurse = false;
+        namespace = null;
+        args = {};
+        priority = [];
+        ignore = [];
+      }
+      // defaults;
   in
-    if isPath input    then base // {path = input;}
-    else if isList input then base // {path = input;}
-    else                      base // input;
+    if isPath input
+    then base // {path = input;}
+    else if isList input
+    then base // {path = input;}
+    else base // input;
 
   /**
   Infer a namespace name from a file or directory path.
@@ -308,10 +320,10 @@ Intended as a zero-dependency bootstrap that other library namespaces
   ```
   */
   importAttrs = input: let
-    n      = normalizeInput {} input;
-    paths  = collectPaths {inherit (n) path recurse ignore;};
-    all    = mergeAttrsList (map (p: importWithFilteredArgs p n.args) paths);
-    names  = attrNames all;
+    n = normalizeInput {} input;
+    paths = collectPaths {inherit (n) path recurse ignore;};
+    all = mergeAttrsList (map (p: importWithFilteredArgs p n.args) paths);
+    names = attrNames all;
     values = attrValues all;
   in
     {__meta = {inherit names values all;};} // all;
@@ -344,45 +356,61 @@ Intended as a zero-dependency bootstrap that other library namespaces
   ```
   */
   importLibs = input: let
-    n         = normalizeInput {args = {};} input;
-    paths     = collectPaths {inherit (n) path recurse ignore;};
+    n = normalizeInput {args = {};} input;
+    paths = collectPaths {inherit (n) path recurse ignore;};
     namespace =
       if n.namespace != null
       then n.namespace
       else inferNamespace n.path;
 
     all = assemble {
-      start        = {};
-      entries      = paths;
-      scope        = acc: lib // {${namespace} = acc;};
-      priority     = n.priority or [];
-      ignore       = n.ignore   or [];
+      start = {};
+      entries = paths;
+      scope = acc: lib // {${namespace} = acc;};
+      priority = n.priority or [];
+      ignore = n.ignore   or [];
       dependencies = n.dependencies or [];
     };
 
-    names  = attrNames all;
+    names = attrNames all;
     values = attrValues all;
   in {
-    ${namespace}       = all;
+    ${namespace} = all;
     __meta.${namespace} = {inherit namespace names values all paths;};
   };
-
 in {
-  inherit
-    assemble
-    foldersToExclude
-    isNixFile
-    isIncludedDir
-    collectFromDir
-    collectPaths
-    normalizeInput
-    inferNamespace
-    importWithFilteredArgs
-    importPaths
-    importAttrs
-    importLibs
-    ;
+  /**
+  `lib.assembly` — all helpers live here so the file can be merged
+  directly into lib:
 
-  # Alias kept for back-compat with existing callers.
-  imports = importPaths;
+  ```nix
+  lib // (import ./assembly.nix { inherit lib; })
+  # => lib // { assembly = { assemble, importLibs, … }; }
+  ```
+
+  Each namespace default.nix then does:
+
+  ```nix
+  { lib }: lib.assembly.importLibs ./.
+  ```
+  */
+  assembly = {
+    inherit
+      assemble
+      foldersToExclude
+      isNixFile
+      isIncludedDir
+      collectFromDir
+      collectPaths
+      normalizeInput
+      inferNamespace
+      importWithFilteredArgs
+      importPaths
+      importAttrs
+      importLibs
+      ;
+
+    # Alias kept for back-compat with existing callers.
+    imports = importPaths;
+  };
 }

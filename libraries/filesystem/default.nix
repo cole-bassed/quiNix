@@ -1,5 +1,7 @@
-{lib}:
-lib.assembly.importLibs {
-  path = ./.;
-  priority = ["paths.nix" "imports.nix"];
+# {lib}: lib.assembly.importLibs {path = ./.;}
+{lib}: {
+  filesystem = lib.assembly.assemble {
+    start = lib.filesystem;
+    scope = ./.;
+  };
 }
