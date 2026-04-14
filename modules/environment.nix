@@ -1,4 +1,3 @@
-# modules/environment.nix
 {
   lib,
   ai ? {},

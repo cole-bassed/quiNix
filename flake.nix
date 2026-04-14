@@ -2,7 +2,10 @@
   description = "AI + Rust Development Environment";
 
   outputs = inputs @ {self, ...}:
-    (import ./modules {inherit inputs;}).mkOutputs;
+    (import ./modules {
+      inherit inputs;
+      lib = import ../libraries {inherit (inputs.NixPackages) lib;};
+    }).mkOutputs;
 
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";

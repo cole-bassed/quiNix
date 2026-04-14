@@ -9,13 +9,10 @@ so every module has access to lib.compactAttrs, lib.resolveBin, etc.
 
 Returns: mkAll // { mkOutputs }
 */
-{inputs}: let
-  lib = import ./libraries {inherit (inputs.NixPackages) lib;};
-
-  mkPkgs = import ./packages {inherit inputs;};
-  mkRust = import ./packages/rust.nix;
-  mkOpenClaw = import ./packages/openclaw.nix;
-  mkLLM = import ./packages/llm.nix;
+{
+  inputs,
+  lib,
+}: let
   mkTools = import ./tools.nix;
   mkEnvironment = import ./environment.nix;
   mkTemplates = import ./templates.nix;
@@ -46,8 +43,10 @@ Returns: mkAll // { mkOutputs }
 
   mkOutputs = {
     devShells = mkPerSystem (
-      system:
-        mkShells (allMk // {inherit system lib;})
+      system: let
+        pkgs = mkPkgs {inherit system;};
+      in
+        mkShells (allMk // {inherit pkgs;})
     );
   };
 in
