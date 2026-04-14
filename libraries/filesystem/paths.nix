@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (lib.filesystem) isPath pathIsRegularFile pathType readDir;
+  inherit (lib.filesystem) pathIsRegularFile pathType readDir;
   inherit (lib.attrsets) attrNames;
   inherit (lib.lists) concatMap elem filter flatten isList map;
   inherit (lib.strings) hasSuffix;

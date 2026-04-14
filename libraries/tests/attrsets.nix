@@ -4,15 +4,20 @@
 }: let
   inherit (lib.attrsets) optionalAttr recursiveAttrs compactAttrs mapFilterAttrs toEnv;
 in {
-  optionalAttr =
+  optionalAttrTrue =
     assertMsg
-    ((optionalAttr true "foo" 40) == {foo = 42;})
+    ((optionalAttr true "foo" 42) == {foo = 42;})
     "optionalAttr true";
 
   optionalAttrFalse =
     assertMsg
     ((optionalAttr false "foo" 42) == {})
     "optionalAttr false";
+
+  optionalAttrDynamicName =
+    assertMsg
+    ((optionalAttr true "feature-flag" false) == {"feature-flag" = false;})
+    "optionalAttr preserves dynamic attribute names and values";
 
   recursiveAttrs =
     assertMsg
@@ -30,15 +35,22 @@ in {
       })
     "recursiveAttrs merges";
 
+  recursiveAttrsEmpty =
+    assertMsg
+    (recursiveAttrs {} == {})
+    "recursiveAttrs handles an empty attrset";
+
   compactAttrs =
     assertMsg
     ((compactAttrs {
         a = 1;
         b = null;
+        enabled = false;
         c = "";
       })
       == {
         a = 1;
+        enabled = false;
         c = "";
       })
     "compactAttrs removes null";
