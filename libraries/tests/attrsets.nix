@@ -6,8 +6,8 @@
 in {
   optionalAttr =
     assertMsg
-    ((optionalAttr true "foo" 42) == {foo = 42;})
-    "optionalAttr false";
+    ((optionalAttr true "foo" 40) == {foo = 42;})
+    "optionalAttr true";
 
   optionalAttrFalse =
     assertMsg
