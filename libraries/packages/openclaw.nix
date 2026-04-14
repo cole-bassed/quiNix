@@ -1,15 +1,9 @@
 /**
-modules/libraries/packages/openclaw.nix
+libraries/packages/openclaw.nix
 
 Exports OpenClaw package selectors and command helpers.
 */
-{
-  /**
-  Select the OpenClaw package and derive canonical bin/cmd aliases.
-
-  # Signature
-  { pkgs } -> { package, bin, cmd }
-  */
+final: prev: {
   mkOpenClaw = {pkgs}: let
     package = pkgs.openclaw;
 

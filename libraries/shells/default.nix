@@ -1,11 +1,11 @@
 /**
-modules/libraries/shells/default.nix
+libraries/shells/default.nix
 
-Locator for lib.shells namespace. Actual logic lives in sibling .nix files.
+Namespace owner for lib.shells.
 
-Exposed via importLibs ./shells as:
-  lib.shells.config    ← ./config.nix
-  lib.shells.meta      ← ./meta.nix
-  lib.shells.build     ← ./build.nix
+Leaf files in this directory contribute raw members of lib.shells.
 */
-{}
+final: prev: let
+  imported = final.importers.importLibs ./.;
+in
+  (final.importers.mountNamespace "shells" imported) final prev

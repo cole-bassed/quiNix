@@ -1,35 +1,22 @@
 /**
-modules/libraries/default.nix
+libraries.nix
 
-Composes all library extensions into a single lib.extend chain.
+Project-local lib entrypoint.
 
-# Usage
+Each child path here is a namespace root whose default.nix is responsible
+for importing and mounting its own leaf fragments.
+
+Usage:
 ```nix
-lib = import ./libraries { inherit (inputs.NixPackages) lib; };
+lib = import ./libraries.nix { inherit (inputs.NixPackages) lib; };
 ```
 */
-# {lib ? (import <nixpkgs> {}).lib}:
-# lib.extend (
-#   lib.composeManyExtensions [
-#     (import ./importers.nix)
-#     (
-#       final: prev: let
-#         inherit (final.importers) importLibs;
-#         inherit (prev.attrsets) mergeAttrsList;
-#       in
-#         mergeAttrsList [
-#           (importLibs ./attrsets.nix)
-#           (importLibs ./packages)
-#           (importLibs ./shells)
-#         ]
-#     )
-#   ]
-# )
-{lib ? (import <nixpkgs> {}).lib}: let
-  inherit (import ./importers.nix {inherit lib;}) importLibs;
-in
-  importLibs [
-    ./attrsets.nix
-    ./packages
-    ./shells
+{lib ? (import <nixpkgs> {}).lib}:
+lib.extend (
+  lib.composeManyExtensions [
+    (import ./filesystem)
+    # (import ./attrsets)
+    # (import ./packages)
+    # (import ./shells)
   ]
+)

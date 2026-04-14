@@ -1,46 +1,33 @@
 /**
-modules/libraries/packages/rust.nix
+libraries/packages/resolve.nix
 
-Exports Rust package builders and helpers.
+Exports pure package/binary resolution helpers.
 */
-{
-  /**
-  Select a Rust toolchain from rust-overlay (already applied via pkgs).
-  Includes rust-src, rust-analyzer, rustfmt, clippy, and wasm32 target.
-
-  # Signature
-  { pkgs, channel ? "nightly" } -> { channel, toolchain, environment }
-  */
-  mkRust = {
-    pkgs,
-    channel ? "nightly",
-  }: let
-    components = {
-      extensions = [
-        "rust-src"
-        "rust-analyzer"
-        "rustfmt"
-        "clippy"
+final: prev: {
+  mkPkgs = {inputs}: {system}:
+    import inputs.NixPackages {
+      inherit system;
+      overlays = with inputs; [
+        (import Rust)
+        OpenClaw.overlays.default
+        AIAgents.overlays.default
       ];
-      targets = ["wasm32-unknown-unknown"];
+      config.allowUnfree = true;
     };
 
-    toolchains = with pkgs.rust-bin; {
-      nightly = selectLatestNightlyWith (t: t.default.override components);
-      beta = beta.latest.default.override components;
-      stable = stable.latest.default.override components;
-    };
+  extractMainProgram = pkg:
+    if pkg ? meta.mainProgram
+    then pkg.meta.mainProgram
+    else pkg.pname or pkg.name or "";
 
-    toolchain = toolchains.${channel};
+  resolveBin = drv: "${drv}/bin/${final.packages.extractMainProgram drv}";
 
-    environment = {
-      RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
-      RUST_CHANNEL = channel;
-      RUST_BACKTRACE = "full";
-      RUST_LOG = "info";
-      CARGO_INCREMENTAL = "1";
-    };
-  in {
-    inherit channel toolchain environment;
-  };
+  mkBins = packages:
+    final.mapAttrs (_: final.packages.resolveBin)
+    (final.removeAttrs packages (
+      final.attrNames (final.filterAttrs (_: v: v == null) packages)
+    ));
+
+  mkCmds = bins: f:
+    builtins.mapAttrs (_: bin: f bin) bins;
 }

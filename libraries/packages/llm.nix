@@ -1,15 +1,9 @@
 /**
-modules/libraries/packages/llm.nix
+libraries/packages/llm.nix
 
 Exports LLM agent package selectors and command helpers.
 */
-{
-  /**
-  Select LLM agent packages from pkgs.llm-agents and derive bin/cmd aliases.
-
-  # Signature
-  { pkgs, lib } -> { packages, bin, cmd, env }
-  */
+final: prev: {
   mkLLM = {
     pkgs,
     lib,

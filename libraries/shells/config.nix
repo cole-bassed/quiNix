@@ -1,36 +1,24 @@
 /**
-lib/shells/config.nix
+libraries/shells/config.nix
 
 Shell spec constructors.
 
-Each function returns a ShellSpec — it does NOT call pkgs.mkShell.
-Finalization is handled by lib.shells.build.
-
-Exported:
-  mkRust    : { channel ? "nightly" } → ShellSpec
-  mkAi      : { }                     → ShellSpec
-  mkCombined: { channel ? "nightly" } → ShellSpec
+Exports raw members for lib.shells.
 */
-{
-  lib,
-  pkgs,
-  mkTools,
-  mkEnvironment,
-  mkTemplates,
-  mkWelcome,
-}: let
-  inherit (lib.shells) mergeShellSpecs;
-  inherit (lib.packages) mkRust mkOpenClaw mkLLM;
-  inherit (pkgs.stdenv) isDarwin;
-  inherit (pkgs.lib.lists) optionals;
+final: prev: {
+  mkRustSpec = {
+    lib,
+    pkgs,
+    mkTools,
+    mkEnvironment,
+    mkTemplates,
+    mkWelcome,
+    channel ? "nightly",
+  }: let
+    inherit (lib.packages) mkRust;
+    inherit (pkgs.stdenv) isDarwin;
+    inherit (pkgs.lib.lists) optionals;
 
-  /**
-  Rust shell spec.
-
-  Produces a spec for one Rust toolchain channel.
-  The caller picks "nightly" | "stable" | "beta".
-  */
-  mkRustSpec = {channel ? "nightly"}: let
     rust = mkRust {inherit pkgs channel;};
     templates = mkTemplates {inherit pkgs;};
     tools = mkTools {inherit pkgs rust templates;};
@@ -39,7 +27,7 @@ Exported:
   in {
     __meta = {
       kind = "rust";
-      inherit channel rust templates tools welcome;
+      inherit channel rust templates tools welcome pkgs;
     };
 
     shell = {
@@ -57,18 +45,18 @@ Exported:
     };
   };
 
-  /**
-  AI shell spec.
+  mkAiSpec = {
+    lib,
+    pkgs,
+  }: let
+    inherit (lib.packages) mkOpenClaw mkLLM;
 
-  Packages LLM tools + openclaw into a spec.
-  */
-  mkAiSpec = {}: let
     claw = mkOpenClaw {inherit pkgs;};
     llm = mkLLM {inherit pkgs lib;};
   in {
     __meta = {
       kind = "ai";
-      inherit claw llm;
+      inherit claw llm pkgs;
     };
 
     shell = {
@@ -83,17 +71,25 @@ Exported:
     };
   };
 
-  /**
-  Combined (full) shell spec.
+  mkCombinedSpec = {
+    lib,
+    pkgs,
+    mkTools,
+    mkEnvironment,
+    mkTemplates,
+    mkWelcome,
+    channel ? "nightly",
+  }: let
+    inherit (lib.shells) mergeShellSpecs;
 
-  Merges Rust + AI specs then overrides name and __meta.
-  Relies on mergeShellSpecs to concatenate packages and shellHook.
-  */
-  mkCombinedSpec = {channel ? "nightly"}: let
     base =
       mergeShellSpecs
-      (mkRustSpec {inherit channel;})
-      (mkAiSpec {});
+      (final.shells.mkRustSpec {
+        inherit lib pkgs mkTools mkEnvironment mkTemplates mkWelcome channel;
+      })
+      (final.shells.mkAiSpec {
+        inherit lib pkgs;
+      });
   in
     mergeShellSpecs base {
       __meta.kind = "combined";
@@ -103,9 +99,7 @@ Exported:
         name = "full-${channel}";
         packages = [];
         env = {};
-        shellHook = ""; # nothing to add; merge already accumulated both hooks
+        shellHook = "";
       };
     };
-in {
-  inherit mkRustSpec mkAiSpec mkCombinedSpec;
 }

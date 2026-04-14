@@ -13,6 +13,8 @@ Returns: mkAll // { mkOutputs }
   inputs,
   lib,
 }: let
+  inherit (lib.packages) mkPkgs;
+
   mkTools = import ./tools.nix;
   mkEnvironment = import ./environment.nix;
   mkTemplates = import ./templates.nix;
@@ -23,9 +25,6 @@ Returns: mkAll // { mkOutputs }
     inherit
       lib
       mkPkgs
-      mkRust
-      mkOpenClaw
-      mkLLM
       mkTools
       mkEnvironment
       mkTemplates
