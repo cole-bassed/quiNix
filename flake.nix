@@ -18,10 +18,5 @@
   outputs = inputs @ {...}: let
     _ = import ./. {inherit inputs;};
   in
-    _.modules.mkOutputs;
-
-  # (import _.paths.modules {
-  #   inherit inputs;
-  #   inherit (_) lib;
-  # }).mkOutputs;
+    _.mkOutputs;
 }
