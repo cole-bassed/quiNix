@@ -8,14 +8,7 @@ Shell finalization helpers for lib.shells.
   inherit (lib.attrsets) attrValues mapAttrs optionalAttrs;
   inherit (lib.lists) findFirst optionals;
   inherit (lib.strings) optionalString;
-  # TODO: Move isEppty to a relevant namespace.
-  inherit (lib.attrsets) isAttrs attrNames;
-  inherit (lib.lists) isList length;
-  isEmpty = x:
-    (x == "")
-    || (x == null)
-    || (isAttrs x && length (attrNames x) == 0)
-    || (isList x && length x == 0);
+  inherit (lib.trivial) isNotEmpty;
 
   /**
   Turn a shell spec into a `pkgs.mkShell` derivation.
@@ -50,10 +43,10 @@ Shell finalization helpers for lib.shells.
     shell =
       args
       // {
-        name = optionalString (!isEmpty name) name;
-        packages = optionals (!isEmpty packages) packages;
-        env = optionalAttrs (!isEmpty env) env;
-        shellHook = optionalString (!isEmpty shellHook) shellHook;
+        name = optionalString (isNotEmpty name) name;
+        packages = optionals (isNotEmpty packages) packages;
+        env = optionalAttrs (isNotEmpty env) env;
+        shellHook = optionalString (isNotEmpty shellHook) shellHook;
       };
   in
     pkgs.mkShell shell;
