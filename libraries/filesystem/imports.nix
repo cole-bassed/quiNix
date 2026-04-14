@@ -3,37 +3,24 @@ libraries/filesystem/imports.nix
 
 Import and composition helpers for lib.filesystem.
 
-Exports raw members of the filesystem namespace:
+# Exports:
 - importPaths
 - imports
 - importAttrs
 - importLibs
 
-Design:
+# Design:
 - importPaths discovers importable nix paths.
 - imports is an alias to importPaths.
-- importAttrs imports plain attrset-producing files.
-- importLibs imports overlay fragments and mounts them under the inferred
-  or explicit namespace.
+- importAttrs imports and merges plain attrset-producing files.
+- importLibs imports and assembles plain lib fragment files for a namespace.
 */
-final: prev: let
-  lib = final;
-
-  inherit
-    (final.filesystem)
-    inferNamespace
-    normalizeInput
-    collectPaths
-    ;
-  inherit
-    (final.attrsets)
-    attrNames
-    filterAttrs
-    mergeAttrsList
-    ;
-  inherit (final.lists) map;
-  inherit (final.strings) removeSuffix;
-  inherit (final.trivial) functionArgs isFunction;
+{lib}: let
+  inherit (lib) assemble;
+  inherit (lib.filesystem) inferNamespace normalizeInput collectPaths;
+  inherit (lib.attrsets) attrNames attrValues filterAttrs mergeAttrsList;
+  inherit (lib.lists) elem map;
+  inherit (lib.trivial) functionArgs isFunction;
 
   importWithFilteredArgs = path: args: let
     target = import path;
@@ -41,7 +28,7 @@ final: prev: let
     if isFunction target
     then let
       declared = attrNames (functionArgs target);
-      filtered = filterAttrs (name: _: builtins.elem name declared) args;
+      filtered = filterAttrs (name: _: elem name declared) args;
     in
       target filtered
     else target;
@@ -60,7 +47,7 @@ final: prev: let
     };
     all = mergeAttrsList (map (p: importWithFilteredArgs p n.args) paths);
     names = attrNames all;
-    values = builtins.attrValues all;
+    values = attrValues all;
   in
     {
       __meta = {
@@ -70,7 +57,7 @@ final: prev: let
     // all;
 
   importLibs = input: let
-    n = normalizeInput {} input;
+    n = normalizeInput {args = {};} input;
     paths = collectPaths {
       inherit (n) path recurse;
     };
@@ -79,28 +66,26 @@ final: prev: let
       then n.namespace
       else inferNamespace n.path;
 
-    overlays = map import paths;
-    overlay = lib.composeManyExtensions overlays;
-    names =
-      map
-      (p: removeSuffix ".nix" (baseNameOf (toString p)))
-      paths;
-  in
-    final': prev': let
-      base = prev'.${namespace} or {};
-      loaded = overlay final' base;
-    in {
-      ${namespace} = base // loaded;
-      __meta =
-        (prev'.__meta or {})
+    all = assemble {
+      start = {};
+      entries = paths;
+      scope = acc:
+        lib
         // {
-          ${namespace} = {
-            inherit namespace names paths;
-            values = builtins.attrValues loaded;
-            all = loaded;
-          };
+          ${namespace} = acc;
         };
     };
+
+    names = attrNames all;
+    values = attrValues all;
+  in {
+    ${namespace} = all;
+    __meta = {
+      ${namespace} = {
+        inherit namespace names values all paths;
+      };
+    };
+  };
 in {
   inherit
     importPaths

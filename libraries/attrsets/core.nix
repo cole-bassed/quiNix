@@ -1,20 +1,18 @@
 /**
 libraries/attrsets/core.nix
 
-Project-local additions to lib.attrsets.
-
-Exports raw members for the attrsets namespace.
+Attrset utilities for lib.attrsets.
 */
-final: prev: let
+{lib}: let
   inherit
-    (final.attrsets)
+    (lib.attrsets)
     attrValues
     filterAttrs
     mapAttrs
     optionalAttrs
     recursiveUpdate
     ;
-  inherit (final.lists) foldl;
+  inherit (lib.lists) foldl;
 
   optionalAttr = condition: name: value:
     optionalAttrs condition {"${name}" = value;};

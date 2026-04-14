@@ -3,7 +3,7 @@ libraries/filesystem/paths.nix
 
 Path and discovery helpers for lib.filesystem.
 
-Exports raw members of the filesystem namespace:
+Exports:
 - foldersToExclude
 - inferNamespace
 - normalizeInput
@@ -12,17 +12,17 @@ Exports raw members of the filesystem namespace:
 - collectFromDir
 - collectPaths
 */
-final: prev: let
+{lib}: let
   inherit
-    (final.filesystem)
+    (lib.filesystem)
     isPath
     pathIsRegularFile
     pathType
     readDir
     ;
-  inherit (final.attrsets) attrNames;
-  inherit (final.lists) concatMap elem filter flatten isList map;
-  inherit (final.strings) hasSuffix removeSuffix;
+  inherit (lib.attrsets) attrNames;
+  inherit (lib.lists) concatMap elem filter flatten isList map;
+  inherit (lib.strings) hasSuffix removeSuffix;
 
   foldersToExclude = [
     "archives"
