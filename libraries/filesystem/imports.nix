@@ -218,6 +218,7 @@ Import helpers built on top of filesystem path discovery.
       scope = acc: lib // {${namespace} = acc;};
       priority = n.priority or [];
       ignore = n.ignore or [];
+      dependencies = n.dependencies or [];
     };
 
     names = attrNames all;

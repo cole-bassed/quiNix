@@ -1,11 +1,7 @@
-/**
-libraries/shells/default.nix
-
-Mounts lib.shells extensions from leaf files.
-*/
 {lib}:
-lib.filesystem.importLibs {
+lib.assembly.importLibs {
   path = ./.;
+  dependencies = [../packages];
   priority = ["build.nix"];
   ignore = ["meta.nix" "config.nix"];
 }
