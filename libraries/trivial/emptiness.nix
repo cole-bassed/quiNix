@@ -43,9 +43,31 @@
     || (x == null)
     || (isAttrs x && length (attrNames x) == 0)
     || (isList x && length x == 0);
+
+  /**
+  Determine whether a value is not empty.
+
+  This is the logical negation of `lib.trivial.isEmpty`.
+
+  # Inputs
+
+  `x` (any type)
+  : The value to check.
+
+  # Type
+
+  ```
+  isNotEmpty :: a -> bool
+  ```
+
+  # Return
+
+  `true` if the value is not empty, `false` otherwise.
+  */
+  isNotEmpty = x: !isEmpty x;
 in {
   inherit
     isEmpty
+    isNotEmpty
     ;
-  isNotEmpty = x: !isEmpty x;
 }

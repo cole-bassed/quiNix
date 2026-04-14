@@ -64,7 +64,7 @@ Shell finalization helpers for lib.shells.
         default =
           if (default != {})
           then default
-          else findFirst (shell: !isEmpty shell) "" (attrValues shells);
+          else findFirst (shell: isNotEmpty shell) "" (attrValues shells);
       })
     (mkPkgsPerSystem {inherit inputs;});
 in {inherit mkShell mkShells;}
