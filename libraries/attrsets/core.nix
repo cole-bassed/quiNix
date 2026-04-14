@@ -32,6 +32,9 @@ Attrset utilities for lib.attrsets.
   optionalAttr false "foo" 42
   # => {}
   ```
+
+  # Returns
+  `{ "${name}" = value; }` when `condition` is true, otherwise `{}`.
   */
   optionalAttr = condition: name: value:
     optionalAttrs condition {"${name}" = value;};
@@ -57,6 +60,9 @@ Attrset utilities for lib.attrsets.
   #   services.postgresql.enable = true;
   # }
   ```
+
+  # Returns
+  A single attrset produced by recursively merging all values in `conditions`.
   */
   recursiveAttrs = conditions:
     foldl recursiveUpdate {} (attrValues conditions);
@@ -83,6 +89,9 @@ Attrset utilities for lib.attrsets.
   #   c = "";
   # }
   ```
+
+  # Returns
+  A copy of the input attrset with only `null`-valued attributes removed.
   */
   compactAttrs = filterAttrs (_: v: v != null);
 
@@ -113,6 +122,9 @@ Attrset utilities for lib.attrsets.
   #   c = "c-2";
   # }
   ```
+
+  # Returns
+  The mapped attrset with any attributes whose mapped value is `null` removed.
   */
   mapFilterAttrs = f: attrs:
     compactAttrs (mapAttrs f attrs);
@@ -139,6 +151,9 @@ Attrset utilities for lib.attrsets.
   #   DEBUG = "true";
   # }
   ```
+
+  # Returns
+  An attrset of string values with any original `null` entries omitted.
   */
   toEnv = attrs:
     compactAttrs (mapAttrs (_: v: toString v) attrs);

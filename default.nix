@@ -1,8 +1,7 @@
 {
   lib ? (import <nixpkgs> {}).lib,
-  self ? {},
+  inputs ? {},
 }: let
-  inputs = self.inputs or {};
   paths = {
     root = ./.;
     libraries = ./libraries;
@@ -13,10 +12,13 @@
 in
   if inputs != {}
   then {
+    #~@ Flake
     inherit modules inputs paths;
     lib = libraries;
+    inherit (modules) mkOutputs;
   }
   else {
+    #~@ Basic
     inherit paths;
     lib = libraries;
   }

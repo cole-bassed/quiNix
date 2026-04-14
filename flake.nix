@@ -15,11 +15,16 @@
     AIAgents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = inputs @ {self, ...}: let
-    _ = import ./. {inherit (inputs.NixPackages) lib self;};
-  in
-    (import _.paths.modules {
+  outputs = inputs @ {...}: let
+    _ = import ./. {
+      inherit (inputs.NixPackages) lib;
       inherit inputs;
-      inherit (_) lib;
-    }).mkOutputs;
+    };
+  in
+    _.modules.mkOutputs;
+
+  # (import _.paths.modules {
+  #   inherit inputs;
+  #   inherit (_) lib;
+  # }).mkOutputs;
 }
