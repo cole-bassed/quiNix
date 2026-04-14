@@ -16,10 +16,7 @@
   };
 
   outputs = inputs @ {...}: let
-    _ = import ./. {
-      inherit (inputs.NixPackages) lib;
-      inherit inputs;
-    };
+    _ = import ./. {inherit inputs;};
   in
     _.modules.mkOutputs;
 

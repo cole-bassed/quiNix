@@ -1,5 +1,5 @@
 {
-  lib ? (import <nixpkgs> {}).lib,
+  lib ? {},
   inputs ? {},
 }: let
   paths = {
@@ -7,16 +7,30 @@
     libraries = ./libraries;
     modules = ./modules;
   };
-  modules = import paths.modules {inherit lib inputs;};
-  libraries = import paths.libraries {inherit lib;};
-in
-  if inputs != {}
-  then {
-    #~@ Flake
-    inherit modules inputs paths;
+
+  libraries = import paths.libraries {
+    lib =
+      if inputs != {}
+      then inputs.NixPackages.lib
+      else if lib != {}
+      then lib
+      else (import <nixpkgs> {}).lib;
+  };
+
+  inherit (libraries.attrsets) optionalAttrs;
+
+  flake = optionalAttrs (inputs != {}) {
+    inherit inputs paths;
     lib = libraries;
-    inherit (modules) mkOutputs;
-  }
+    modules = import paths.modules {
+      inherit inputs;
+      inherit (flake) lib;
+    };
+    inherit (flake.modules) mkOutputs;
+  };
+in
+  if flake != {}
+  then flake
   else {
     #~@ Basic
     inherit paths;
