@@ -1,52 +1,30 @@
-/**
-modules/default.nix
-
-Single entry point for all modules.
-Owns mkOutputs so flake.nix stays bare.
-
-lib is extended here once and threaded through all mk* functions,
-so every module has access to lib.compactAttrs, lib.resolveBin, etc.
-
-Returns: mkAll // { mkOutputs }
-*/
 {
   inputs,
   lib,
+  ...
 }: let
   inherit (lib.packages) mkPkgs;
+  inherit (lib.shells) mkShell mkShells;
 
-  mkTools = import ./tools.nix;
-  mkEnvironment = import ./environment.nix;
-  mkTemplates = import ./templates.nix;
-  mkWelcome = import ./welcome.nix;
-  mkShells = import ./shells.nix;
+  pkgs = mkPkgs {inherit inputs;};
 
-  allMk = {
-    inherit
-      lib
-      mkPkgs
-      mkTools
-      mkEnvironment
-      mkTemplates
-      mkWelcome
-      mkShells
-      ;
+  testShell = mkShell {
+    inherit pkgs;
+    name = "ai-rust";
+    packages = [];
+    env = {};
+    shellHook = ''
+      echo "🔧 AI+Rust REPL"
+      echo "REPL: nix repl"
+    '';
   };
-
-  mkPerSystem = lib.attrsets.genAttrs [
-    "x86_64-linux"
-    "aarch64-linux"
-    "x86_64-darwin"
-    "aarch64-darwin"
-  ];
-
-  mkOutputs = {
-    devShells = mkPerSystem (
-      system: let
-        pkgs = mkPkgs {inherit system;};
-      in
-        mkShells (allMk // {inherit pkgs;})
-    );
+  # default=testShell;
+  # in {devShells = mkPkgsPerSystem {inherit inputs;};}
+in {
+  devShells = mkShells {
+    inherit inputs;
+    shells = {
+      inherit testShell;
+    };
   };
-in
-  allMk // {inherit mkOutputs;}
+}

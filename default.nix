@@ -5,7 +5,7 @@
   paths = {
     root = ./.;
     libraries = ./libraries;
-    modules = ./modules;
+    devShells = ./modules;
   };
 
   libraries = import paths.libraries {
@@ -22,11 +22,13 @@
   flake = optionalAttrs (inputs != {}) {
     inherit inputs paths;
     lib = libraries;
-    modules = import paths.modules {
-      inherit inputs;
-      inherit (flake) lib;
-    };
-    inherit (flake.modules) mkOutputs;
+    inherit
+      (import paths.devShells {
+        inherit inputs;
+        inherit (flake) lib;
+      })
+      devShells
+      ;
   };
 in
   if flake != {}

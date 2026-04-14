@@ -7,8 +7,6 @@ Mounts lib.strings extensions from leaf files.
   strings = lib.assemble {
     start = lib.strings;
     scope = acc: lib // {strings = acc;};
-    entries = [
-      ./core.nix
-    ];
+    entries = ./.;
   };
 }

@@ -7,8 +7,6 @@ Mounts lib.attrsets extensions from leaf files.
   attrsets = lib.assemble {
     start = lib.attrsets;
     scope = acc: lib // {attrsets = acc;};
-    entries = [
-      ./core.nix
-    ];
+    entries = ./.;
   };
 }

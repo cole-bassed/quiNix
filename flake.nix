@@ -15,8 +15,5 @@
     AIAgents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = inputs @ {...}: let
-    _ = import ./. {inherit inputs;};
-  in
-    _.mkOutputs;
+  outputs = inputs @ {...}: import ./. {inherit inputs;};
 }
