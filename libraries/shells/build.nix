@@ -50,10 +50,10 @@ Shell finalization helpers for lib.shells.
     shell =
       args
       // {
-        name = optionalString (isEmpty name) name;
-        packages = optionals (isEmpty packages) packages;
-        env = optionalAttrs (isEmpty env) env;
-        shellHook = optionalString (isEmpty shellHook) shellHook;
+        name = optionalString (!isEmpty name) name;
+        packages = optionals (!isEmpty packages) packages;
+        env = optionalAttrs (!isEmpty env) env;
+        shellHook = optionalString (!isEmpty shellHook) shellHook;
       };
   in
     pkgs.mkShell shell;

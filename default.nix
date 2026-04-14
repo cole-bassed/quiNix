@@ -5,7 +5,7 @@
   paths = {
     root = ./.;
     libraries = ./libraries;
-    devShells = ./modules;
+    devShells = ./environment;
   };
 
   libraries = import paths.libraries {

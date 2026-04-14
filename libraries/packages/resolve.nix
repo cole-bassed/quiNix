@@ -52,7 +52,7 @@ Pure package and binary resolution helpers for lib.packages.
   currentSystem =
     if builtins ? currentSystem
     then builtins.currentSystem
-    else head supportedSystems {};
+    else head (supportedSystems {});
 
   defineSystem = {
     system ? currentSystem,

@@ -13,28 +13,6 @@ String utilities for lib.strings.
     ;
 
   /**
-  Return `value` when `condition` is true, otherwise return the empty string.
-
-  # Type
-  ```nix
-  optionalString :: bool -> string -> string
-  ```
-
-  # Examples
-  ```nix
-  optionalString true " enabled"
-  # => " enabled"
-
-  optionalString false " enabled"
-  # => ""
-  ```
-  */
-  optionalString = condition: value:
-    if condition
-    then value
-    else "";
-
-  /**
   Ensure a string starts with `prefix`.
 
   # Type
@@ -179,7 +157,6 @@ String utilities for lib.strings.
   words = concatNonEmpty " ";
 in {
   inherit
-    optionalString
     ensurePrefix
     ensureSuffix
     nonEmptyOrNull

@@ -254,6 +254,8 @@ Intended as a zero-dependency bootstrap that other library namespaces
         args = {};
         priority = [];
         ignore = [];
+        lib = null;
+        start = null;
       }
       // defaults;
   in
@@ -357,21 +359,29 @@ Intended as a zero-dependency bootstrap that other library namespaces
   */
   importLibs = input: let
     n = normalizeInput {args = {};} input;
+    libToUse =
+      if n.lib != null
+      then n.lib
+      else lib;
     paths = collectPaths {inherit (n) path recurse ignore;};
     namespace =
       if n.namespace != null
       then n.namespace
       else inferNamespace n.path;
 
+    #> Default start to the nixpkgs base for this namespace, if it exists
+
     all = assemble {
-      start = {};
+      start =
+        if n.start != null
+        then n.start
+        else libToUse.${namespace} or {};
       entries = paths;
-      scope = acc: lib // {${namespace} = acc;};
+      scope = acc: libToUse // {${namespace} = acc;}; # ← was `lib //`
       priority = n.priority or [];
       ignore = n.ignore   or [];
       dependencies = n.dependencies or [];
     };
-
     names = attrNames all;
     values = attrValues all;
   in {

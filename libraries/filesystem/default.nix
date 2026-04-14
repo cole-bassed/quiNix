@@ -1,7 +1,5 @@
-# {lib}: lib.assembly.importLibs {path = ./.;}
-{lib}: {
-  filesystem = lib.assembly.assemble {
-    start = lib.filesystem;
-    scope = ./.;
-  };
+{lib}:
+lib.assembly.importLibs {
+  inherit lib;
+  path = ./.;
 }
