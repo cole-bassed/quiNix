@@ -3,8 +3,9 @@ libraries/shells/meta.nix
 
 Shell-aware merge logic for lib.shells.
 */
-final: prev: let
-  inherit (final.attrsets) recursiveUpdate;
+{lib}: let
+  inherit (lib.attrsets) recursiveUpdate;
+  inherit (lib.lists) foldl';
 
   /**
   Empty shell-spec baseline used by merge helpers.
@@ -121,7 +122,7 @@ final: prev: let
   # Returns
   The left-to-right merge of all provided shell specs, starting from `emptySpec`.
   */
-  mergeMany = builtins.foldl' mergeShellSpecs emptySpec;
+  mergeMany = foldl' mergeShellSpecs emptySpec;
 in {
   inherit emptySpec mergeShellSpecs mergeMany;
 }

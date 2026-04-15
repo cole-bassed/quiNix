@@ -8,33 +8,32 @@
     devShells = ./environment;
   };
 
-  libraries = import paths.libraries {
-    lib =
-      if inputs != {}
-      then inputs.NixPackages.lib
-      else if lib != {}
-      then lib
-      else (import <nixpkgs> {}).lib;
+  shell = {
+    inherit paths;
+    lib = import paths.libraries {
+      lib =
+        if inputs != {}
+        then inputs.NixPackages.lib
+        else if lib != {}
+        then lib
+        else (import <nixpkgs> {}).lib;
+    };
+    pkgs = shell.lib.packages.mkPkgs {inherit inputs;};
   };
 
-  inherit (libraries.attrsets) optionalAttrs;
-
-  flake = optionalAttrs (inputs != {}) {
-    inherit inputs paths;
-    lib = libraries;
-    inherit
-      (import paths.devShells {
-        inherit inputs;
-        inherit (flake) lib;
-      })
-      devShells
-      ;
-  };
+  flake =
+    shell
+    // shell.lib.optionalAttrs (inputs != {}) {
+      inherit inputs;
+      inherit
+        (import paths.devShells {
+          inherit inputs;
+          inherit (shell) lib;
+        })
+        devShells
+        ;
+    };
 in
   if flake != {}
   then flake
-  else {
-    #~@ Basic
-    inherit paths;
-    lib = libraries;
-  }
+  else shell

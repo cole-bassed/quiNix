@@ -5,8 +5,7 @@ Pure package and binary resolution helpers for lib.packages.
 */
 {lib}: let
   inherit (lib.attrsets) attrNames genAttrs mapAttrs filterAttrs;
-  inherit (lib.lists) findFirst;
-  inherit (lib.packages) currentSystem supportedSystems;
+  inherit (lib.lists) elem findFirst head;
   inherit (lib.trivial) isFunction isNotEmpty isEmpty;
 
   /**
@@ -27,26 +26,49 @@ Pure package and binary resolution helpers for lib.packages.
   A `pkgs` set imported from `inputs.NixPackages` with the project overlays applied.
   */
   mkPkgs = {
-    inputs ? {},
+    inputs,
     system ? currentSystem,
     extraOverlays ? [],
   }: let
     packages = resolvePackages inputs;
   in
-    if isEmpty inputs
-    then import <nixpkgs> {inherit system;}
-    else
-      import (packages.nix) {
-        inherit system;
-        overlays =
-          [
-            (resolveOverlay (packages.ai))
-            (resolveOverlay (packages.openclaw))
-            (resolveOverlay (packages.rust))
-          ]
-          ++ extraOverlays;
-        config.allowUnfree = true;
-      };
+    import (packages.nix) {
+      inherit system;
+      overlays =
+        [
+          (resolveOverlay (packages.ai))
+          (resolveOverlay (packages.openclaw))
+          (resolveOverlay (packages.rust))
+        ]
+        ++ extraOverlays;
+      config.allowUnfree = true;
+    };
+
+  #~@ System
+  supportedSystems = {
+    systems ? [
+      "x86_64-linux"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "aarch64-darwin"
+    ],
+  }:
+    systems;
+
+  currentSystem =
+    if builtins ? currentSystem
+    then builtins.currentSystem
+    else head (supportedSystems {});
+
+  defineSystem = {
+    system ? currentSystem,
+    systems ? supportedSystems {},
+  }:
+    if elem system systems
+    then system
+    else throw "Unsupported system: ${system}";
+
+  getSystem = pkgs: pkgs.stdenv.hostPlatform.system;
 
   mkPkgsPerSystem = {inputs}:
     (genAttrs (supportedSystems {})) (
@@ -263,6 +285,10 @@ Pure package and binary resolution helpers for lib.packages.
       bins);
 in {
   inherit
+    defineSystem
+    currentSystem
+    supportedSystems
+    getSystem
     mkPkgs
     mkPkgsPerSystem
     extractMainProgram

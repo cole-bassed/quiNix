@@ -2,5 +2,6 @@
 lib.assembly.importLibs {
   inherit lib;
   path = ./.;
-  ignore = ["llm.nix" "openclaw.nix" "rust.nix"];
+  priority = ["systems.nix"];
+  ignore = ["ai.nix" "openclaw.nix" "rust.nix"];
 }

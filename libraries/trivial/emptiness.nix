@@ -1,6 +1,6 @@
 {lib}: let
-  inherit (lib.attrsets) isAttrs attrNames;
-  inherit (lib.lists) isList length;
+  inherit (lib.filesystem) isPath;
+  inherit (lib.trivial) isFunction;
 
   /**
   Determine whether a value is empty.
@@ -39,10 +39,11 @@
   ```
   */
   isEmpty = x:
-    (x == "")
-    || (x == null)
-    || (isAttrs x && length (attrNames x) == 0)
-    || (isList x && length x == 0);
+    if isFunction x
+    then false
+    else if isPath x
+    then false
+    else (x == null || x == "" || x == [] || x == {});
 
   /**
   Determine whether a value is not empty.

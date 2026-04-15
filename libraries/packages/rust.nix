@@ -3,7 +3,7 @@ libraries/packages/rust.nix
 
 Rust toolchain selectors for lib.packages.
 */
-final: prev: {
+{lib}: {
   /**
   Select a rust-overlay toolchain derivation.
 
