@@ -4,8 +4,8 @@ libraries/shells/build.nix
 Shell finalization helpers for lib.shells.
 */
 {lib}: let
-  inherit (lib.attrsets) attrNames attrValues isDerivation mapAttrs optionalAttrs;
-  inherit (lib.packages) currentSystem mkPkgsPerSystem;
+  inherit (lib.attrsets) attrNames attrValues genAttrs isDerivation mapAttrs optionalAttrs;
+  inherit (lib.packages) currentSystem supportedSystems mkPkgsPerSystem;
   inherit (lib.lists) filter findFirst optionals;
   inherit (lib.strings) isString concatStringsSep;
   inherit (lib.trivial) isEmpty isNotEmpty;
@@ -78,47 +78,77 @@ Shell finalization helpers for lib.shells.
   in
     pkgs'.mkShell finalShellArgs;
 
+  # mkShells = {
+  #   inputs,
+  #   shells ? {},
+  #   default ? null,
+  # }:
+  #   mapAttrs
+  #   (_: pkgs: let
+  #     processShell = shell:
+  #       if isDerivation shell
+  #       then shell
+  #       else mkShell {inherit pkgs shell;};
+
+  #     processedShells = mapAttrs (_: processShell) shells;
+
+  #     defaultShell =
+  #       if isEmpty default
+  #       then
+  #         #> Find the first actual derivation in the set
+  #         let
+  #           found =
+  #             findFirst
+  #             isDerivation
+  #             null
+  #             (attrValues processedShells);
+  #         in
+  #           if found == null
+  #           then throw "mkShells: No shells defined and no default provided."
+  #           else found
+  #       else if isString default
+  #       then
+  #         processedShells.${
+  #           default
+  #         } or (throw ''
+  #           mkShells: default shell '${default}' not found.
+  #           Available shells: ${
+  #             concatStringsSep ", " (attrNames processedShells)
+  #           }'')
+  #       else if isDerivation default
+  #       then default
+  #       else processShell default;
+  #   in
+  #     processedShells // {default = defaultShell;})
+  #   (mkPkgsPerSystem {inherit inputs;});
   mkShells = {
-    inputs,
+    # inputs,
     shells ? {},
     default ? null,
-  }:
-    mapAttrs
-    (_: pkgs: let
-      processShell = shell:
-        if isDerivation shell
-        then shell
-        else mkShell {inherit pkgs shell;};
+  }: let
+    resolvedDefault =
+      if default == null
+      then let
+        found = findFirst isDerivation null (attrValues shells);
+      in
+        if found == null
+        then throw "mkShells: no shells defined and no default provided."
+        else found
+      else if isString default
+      then
+        shells.${
+          default
+        }
+      or (throw ''
+          mkShells: default shell '${default}' not found.
+          Available: ${concatStringsSep ", " (attrNames shells)}'')
+      else if isDerivation default
+      then default
+      else mkShell {shell = default;}; # treat plain attrset as a spec
 
-      processedShells = mapAttrs (_: processShell) shells;
-
-      defaultShell =
-        if isEmpty default
-        then
-          #> Find the first actual derivation in the set
-          let
-            found =
-              findFirst
-              isDerivation
-              null
-              (attrValues processedShells);
-          in
-            if found == null
-            then throw "mkShells: No shells defined and no default provided."
-            else found
-        else if isString default
-        then
-          processedShells.${
-            default
-          } or (throw ''
-            mkShells: default shell '${default}' not found.
-            Available shells: ${
-              concatStringsSep ", " (attrNames processedShells)
-            }'')
-        else if isDerivation default
-        then default
-        else processShell default;
-    in
-      processedShells // {default = defaultShell;})
-    (mkPkgsPerSystem {inherit inputs;});
+    finalShells = shells // {default = resolvedDefault;};
+  in
+    # Wrap the same shells under every system key.
+    # For true per-system builds, pass specs instead of pre-built derivations.
+    genAttrs (supportedSystems {}) (_: finalShells);
 in {inherit mkShell mkShells;}
