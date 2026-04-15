@@ -1,7 +1,8 @@
 {lib}: let
-  inherit (lib.attrsets) genAttrs;
+  inherit (lib.attrsets) genAttrs isAttrs;
   inherit (lib.lists) findFirst;
   inherit (lib.packages) currentSystem supportedSystems;
+  inherit (lib.strings) isString isPath;
   inherit (lib.trivial) isFunction isNotEmpty isEmpty;
 
   /**
@@ -28,7 +29,7 @@
   }: let
     packages = resolvePackages inputs;
   in
-    if isEmpty inputs
+    if inputs == {}
     then import <nixpkgs> {inherit system;}
     else
       import (packages.nix) {
@@ -133,15 +134,32 @@
     };
   };
 
+  /**
+  Safely resolves an input into a Nixpkgs overlay.
+  Acts as a firewall against broken functors or missing attributes.
+  */
   resolveOverlay = input: let
     noop = _: _: {};
   in
-    if isNotEmpty input
+    #? 1. Immediate Safety: If it's null, we're done.
+    if input == null
+    then noop
+    #? 2. Check for Modern Flake Overlay (overlays.default)
+    else if isAttrs input
     then
       if input ? overlays.default
-      then input.overlays.default #? Modern Flake? Use it.
-      else if isFunction (import input)
-      then (import input) #? Old school? Import it and hope for the best.
-      else noop #? Can't import it, give up.
+      then input.overlays.default
+      else noop
+    #? 3. Check if the input is already a function
+    else if isFunction input
+    then input
+    #? 4. Fallback for paths (old-school imports)
+    else if isPath input || isString input
+    then let
+      src = import input;
+    in
+      if isFunction src
+      then src
+      else noop
     else noop;
 in {inherit mkPkgs mkPkgsPerSystem;}
