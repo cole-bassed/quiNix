@@ -78,13 +78,24 @@ Intended as a zero-dependency bootstrap that other library namespaces
   }: let
     orderedEntries =
       if isList entries
-      then
-        # Explicit list — only strip ignored entries, keep caller's order.
-        filter
-        (entry: !(elem (baseNameOf (toString entry)) ignore))
-        entries
+      then let
+        #? Explicit list — only strip ignored entries, keep caller's order.
+        notIgnored =
+          filter
+          (entry: !(elem (baseNameOf (toString entry)) ignore))
+          entries;
+        prioritized =
+          filter
+          (entry: elem (baseNameOf (toString entry)) priority)
+          notIgnored;
+        remaining =
+          filter
+          (entry: !(elem (baseNameOf (toString entry)) priority))
+          notIgnored;
+      in
+        prioritized ++ remaining
       else let
-        # Directory — sort by priority then alphabetically.
+        #? Directory — sort by priority then alphabetically.
         dir = readDir entries;
         names =
           filter
