@@ -18,6 +18,7 @@
         then lib
         else (import <nixpkgs> {}).lib;
     };
+    # packages =
     pkgs = shell.lib.packages.mkPkgs {inherit inputs;};
   };
 
