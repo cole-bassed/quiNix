@@ -1,6 +1,6 @@
-# quiNix
+# qunix
 
-quiNix is the silent-`n` Nix toolkit and project foundation behind Cole-Bassed Solutions.
+qunix is the silent-`n` Nix toolkit and project foundation behind Cole-Bassed Solutions.
 
 It packages a reusable Nix library, flake entrypoints, development-shell helpers, and project templates that make it easier to build consistent Rust, AI, and general development environments.
 
@@ -54,22 +54,22 @@ nix flake check
 
 ```nix
 let
-  quiNix = import ./. {};
+  qunix = import ./. {};
 in
-  quiNix.lib
+  qunix.lib
 ```
 
 ### Use from another flake
 
 ```nix
 {
-  inputs.quiNix.url = "github:cole-bassed/quiNix";
+  inputs.qunix.url = "github:cole-bassed/qunix";
 
-  outputs = { self, nixpkgs, quiNix, ... }:
+  outputs = { self, nixpkgs, qunix, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-      qlib = import quiNix { inherit (pkgs) lib; };
+      qlib = import qunix { inherit (pkgs) lib; };
     in {
       # use qlib here
     };

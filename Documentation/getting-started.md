@@ -27,17 +27,17 @@ nix develop
 nix flake check
 ```
 
-## Consuming quiNix as an input
+## Consuming qunix as an input
 
 ```nix
 {
-  inputs.quiNix.url = "github:cole-bassed/quiNix";
+  inputs.qunix.url = "github:cole-bassed/qunix";
 
-  outputs = { self, nixpkgs, quiNix, ... }:
+  outputs = { self, nixpkgs, qunix, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-      qlib = import quiNix { inherit (pkgs) lib; };
+      qlib = import qunix { inherit (pkgs) lib; };
     in {
       # use qlib
     };

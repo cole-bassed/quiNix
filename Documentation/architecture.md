@@ -1,6 +1,6 @@
 # Architecture
 
-quiNix is structured as a reusable Nix foundation with a small number of clear entrypoints.
+qunix is structured as a reusable Nix foundation with a small number of clear entrypoints.
 
 ## Entry points
 
@@ -42,7 +42,7 @@ This is the place to expand shared shell behavior for project and team workflows
 
 `templates/default.nix` manages reusable scaffold files and deployment logic for downstream projects.
 
-This gives quiNix a second role:
+This gives qunix a second role:
 
 - reusable library for Nix code
 - reusable project bootstrap support for new repositories
