@@ -1,5 +1,5 @@
 {
-  description = "quiNix — the silent-n Nix toolkit and project foundation for Cole-Bassed Solutions";
+  description = "qunix — the silent-n Nix toolkit and project foundation for Cole-Bassed Solutions";
 
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -16,5 +16,5 @@
     AI.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = inputs @ {...}: import ./. {inherit inputs;};
+  outputs = inputs@{ ... }: import ./. { inherit inputs; };
 }
