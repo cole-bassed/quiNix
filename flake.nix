@@ -1,5 +1,5 @@
 {
-  description = "quiNix — the silent-n Nix toolkit and project foundation for Cole-Bassed Solutions";
+  description = "qunix — the silent-n Nix toolkit and project foundation for Cole-Bassed Solutions";
 
   inputs = {
     NixPackages.url = "github:NixOS/nixpkgs/nixos-unstable";

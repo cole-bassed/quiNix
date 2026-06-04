@@ -1,6 +1,6 @@
-# quiNix Documentation
+# qunix Documentation
 
-Welcome to the quiNix documentation set.
+Welcome to the qunix documentation set.
 
 ## Start here
 
@@ -20,6 +20,6 @@ Welcome to the quiNix documentation set.
 
 This documentation is for:
 
-- maintainers of quiNix
+- maintainers of qunix
 - contributors extending the library
 - downstream projects that want to consume the library or shell patterns

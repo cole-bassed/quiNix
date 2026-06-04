@@ -1,6 +1,6 @@
-# Contributing to quiNix
+# Contributing to qunix
 
-Thanks for your interest in contributing to quiNix.
+Thanks for your interest in contributing to qunix.
 
 ## Principles
 
@@ -49,7 +49,7 @@ Good pull requests usually include:
 
 ## Licensing
 
-By contributing to quiNix, you agree that your contributions may be distributed under the project's dual-license terms:
+By contributing to qunix, you agree that your contributions may be distributed under the project's dual-license terms:
 
 - MIT
 - Apache-2.0
